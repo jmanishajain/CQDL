@@ -1,0 +1,122 @@
+load ./matterhorns.maude .
+
+fmod SDCGROVER is
+    pr SCALAR .
+    pr DIRAC .
+    pr MATRIX .
+    pr QUBIT .
+    pr Q-SYNTAX .
+    pr Q-SEMANTICS .
+    pr SATISFACTION-RELATION .
+
+    --- Initial state
+    op inQSt : -> Qubit .
+    eq inQSt = (q[1 2 3 4 5]: |0> (x) |0> (x) |0> (x) |0> (x) |0>) .
+
+    --- Sequential Version
+    --- superdensecoding
+    ops Charlie Alice Alice00 Alice01 Alice10 Alice11 Bob sdc : -> Prog .
+    eq Charlie = H(1) ; CX(1,2) . 
+    eq Alice = skip + Z(1) + X(1) + X(1) ; Z(1) .
+    eq Alice00 = skip .
+    eq Alice10 = Z(1) .
+    eq Alice01 = X(1) . 
+    eq Alice11 = X(1) ; Z(1) .  
+    eq Bob = CX(1,2) ; H(1) ; Measure(1, skip, skip) ; Measure(2, skip, skip) .
+    eq sdc = Charlie ; Alice ; Bob .
+
+    --- format for the satisfaction relation
+    ops sdc00 sdc01 sdc10 sdc11 : -> Prog .
+    eq sdc00 = Charlie ; Alice00 ; Bob .
+    eq sdc01 = Charlie ; Alice01 ; Bob .
+    eq sdc10 = Charlie ; Alice10 ; Bob .
+    eq sdc11 = Charlie ; Alice11 ; Bob .
+
+    --- grover
+    ops init anc oracle00 oracle01 oracle10 oracle11 diff : -> Prog .
+    eq init = H(3) ; H(4) .
+    eq anc = X(5) ; H(5) .
+    eq oracle00 = X(3) ; X(4) ; CCX(3,4,5) ; X(3) ; X(4) .
+    eq oracle01 = X(3) ; CCX(3,4,5) ; X(3) .
+    eq oracle10 = X(4) ; CCX(3,4,5) ; X(4) .
+    eq oracle11 = CCX(3,4,5) .
+    eq diff = H(3) ; X(3) ; H(4) ; X(4) ; CZ(3,4) ; X(3) ; H(3) ; X(4) ; H(4) .
+
+    --- mixing
+    ops oracle grover sdcGrov : -> Prog .
+    eq oracle = Measure(1, Measure(2,oracle00,oracle01), Measure(2,oracle10,oracle11)) .
+    eq grover = init ; anc ; oracle ; diff .
+    eq sdcGrov = sdc ; grover .
+
+    --- rewriting the example for the satisfaction relation
+    ops sdcGrov00 sdcGrov01 sdcGrov10 sdcGrov11 : -> Prog .
+    eq sdcGrov00 = sdc00 ; grover .
+    eq sdcGrov01 = sdc01 ; grover .
+    eq sdcGrov10 = sdc10 ; grover .
+    eq sdcGrov11 = sdc11 ; grover .
+
+    --- Parallel Version
+    --- superdensecoding
+    ops BobP sdcP : -> Prog .
+    eq BobP = CX(1,2) ; H(1) ; (Measure(1, skip, skip) || Measure(2, skip, skip)) .
+    eq sdcP = Charlie ; Alice ; BobP .
+
+    --- format for the satisfaction relation
+    ops sdcP00 sdcP01 sdcP10 sdcP11 : -> Prog .
+    eq sdcP00 = Charlie ; Alice00 ; BobP .
+    eq sdcP01 = Charlie ; Alice01 ; BobP .
+    eq sdcP10 = Charlie ; Alice10 ; BobP .
+    eq sdcP11 = Charlie ; Alice11 ; BobP .
+
+    --- grover
+    ops initP oracle00P diffP grovInitP : -> Prog .
+    eq initP = H(3) || H(4) .
+    eq oracle00P = (X(3) || X(4)) ; CCX(3,4,5) ; (X(3) || X(4)) .
+    eq diffP = ((H(3) ; X(3)) || (H(4) ; X(4))) ; CZ(3,4) ; ((X(3) ; H(3)) || (X(4) ; H(4))) .
+    eq grovInitP = initP || anc .
+
+    --- mixing
+    ops oracleP sdcGrovP00 sdcGrovP01 sdcGrovP10 sdcGrovP11 sdcGrovP : -> Prog .
+    eq oracleP = Measure(1, Measure(2,oracle00P,oracle01), Measure(2,oracle10,oracle11)) .
+    eq sdcGrovP00 = (sdcP00 || grovInitP) ; oracleP ; diffP .
+    eq sdcGrovP01 = (sdcP01 || grovInitP) ; oracleP ; diffP .
+    eq sdcGrovP10 = (sdcP10 || grovInitP) ; oracleP ; diffP .
+    eq sdcGrovP11 = (sdcP11 || grovInitP) ; oracleP ; diffP .
+    eq sdcGrovP = (sdcP || grovInitP) ; oracleP ; diffP .
+	
+endfm
+
+--- sequential version     
+--- reduce operational semantics
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrov00, inQSt > )) .
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrov01, inQSt > )) .
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrov10, inQSt > )) .
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrov11, inQSt > )) .    
+red in SDCGROVER :  rmvRep(bigStep( < sdcGrov, inQSt > )) .
+
+--- reduce satisfaction relation
+*** red in SDCGROVER : inQSt |= [sdcGrov00] ( P(1,|0>) /\ P(2,|0>) /\  P(3,|0>) /\ P(4,|0>) ) .
+*** red in SDCGROVER : inQSt |= [sdcGrov01] ( P(1,|0>) /\ P(2,|1>) /\  P(3,|0>) /\ P(4,|1>) ) .
+*** red in SDCGROVER : inQSt |= [sdcGrov10] ( P(1,|1>) /\ P(2,|0>) /\  P(3,|1>) /\ P(4,|0>) ) .
+*** red in SDCGROVER : inQSt |= [sdcGrov11] ( P(1,|1>) /\ P(2,|1>) /\  P(3,|1>) /\ P(4,|1>) ) .
+red in SDCGROVER : 
+inQSt |= 
+ ([sdcGrov00] ( P(1,|0>) /\ P(2,|0>) /\  P(3,|0>) /\ P(4,|0>))) /\
+ ([sdcGrov01] ( P(1,|0>) /\ P(2,|1>) /\  P(3,|0>) /\ P(4,|1>))) /\
+ ([sdcGrov10] ( P(1,|1>) /\ P(2,|0>) /\  P(3,|1>) /\ P(4,|0>))) /\ 
+ ([sdcGrov11] ( P(1,|1>) /\ P(2,|1>) /\  P(3,|1>) /\ P(4,|1>))) .
+    
+--- Parallel version
+--- reduce operational semantics
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrovP00, inQSt > )) .
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrovP01, inQSt > )) .
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrovP10, inQSt > )) .
+*** red in SDCGROVER :  rmvRep(bigStep( < sdcGrovP11, inQSt > )) .
+    
+
+--- reduce satisfaction relation
+*** red in SDCGROVER : inQSt |= [sdcGrovP00] ( P(1,|0>) /\ P(2,|0>) /\  P(3,|0>) /\ P(4,|0>) ) .
+*** red in SDCGROVER : inQSt |= [sdcGrovP01] ( P(1,|0>) /\ P(2,|1>) /\  P(3,|0>) /\ P(4,|1>) ) .
+*** red in SDCGROVER : inQSt |= [sdcGrovP10] ( P(1,|1>) /\ P(2,|0>) /\  P(3,|1>) /\ P(4,|0>) ) .
+*** red in SDCGROVER : inQSt |= [sdcGrovP11] ( P(1,|1>) /\ P(2,|1>) /\  P(3,|1>) /\ P(4,|1>) ) .
+

@@ -1,0 +1,1008 @@
+fmod SCALAR is
+    pr CONVERSION .  --- Required for converting between different types
+    pr EXT-BOOL .    --- Extended Boolean operations
+
+    vars R R1 R2 : Rat .                                       --- Declare variables of type Rat (rational)
+    vars S S1 S2 S3 S4 : Scalar .                              --- Declare variables of type Scalar
+    var N : Nat .                                              --- Declare a natural number variable
+
+    sorts Scalar iNumber .                                     --- Define sorts for scalars(complex) & imaginary numbers
+    subsort Rat iNumber < Scalar .  
+
+    --- Imaginary unit
+    op i : -> iNumber [ctor].                                 --- The imaginary unit i, representing sqrt(-1)
+
+    --- Basic scalar operations
+    op _.*_ : Scalar Scalar -> Scalar [comm assoc prec 32] .  --- Multiplication
+    op _./_ : Scalar Scalar -> Scalar [prec 31] .             --- Division
+    op _.+_ : Scalar Scalar -> Scalar [comm assoc prec 33] .  --- Addition
+    op (_)^* : Scalar -> Scalar [prec 30] .                   --- Complex conjugate
+
+    --- Comparative operators for scalars
+    op _.>_ : Scalar Scalar -> Bool .                         --- Greater than
+    op _.>=_ : Scalar Scalar -> Bool .                        --- Greater than or equal to
+    op _.<_ : Scalar Scalar -> Bool .                         --- Less than
+    op _.<=_ : Scalar Scalar -> Bool .                        --- Less than or equal to
+
+    --- Error scalar 
+    op errS : -> Scalar . 
+
+    --- Functions to handle scalars
+    op Sqrt : Scalar -> Scalar .                               --- Square root
+    op Abs : Scalar -> Scalar .                                --- Absolute value
+    op Pow : Scalar Rat -> Scalar .                            --- Power function (R^n)
+
+    --- Imaginary properties
+    eq i .* i = -1 .                                           --- Definition of complex i
+    eq Abs(i) = 1 .                                            --- Absolute value of i is 1
+
+    --- Rational properties.
+    eq R1 .* R2 = R1 * R2 .                                   ---  multiplication
+    eq R1 ./ R2 = R1 / R2 .                                   ---  division
+    eq R1 .+ R2 = R1 + R2 .                                   ---  addition
+    eq R1 .< R2 = R1 < R2 .                                   --- Less than comparison
+    eq R1 .<= R2 = R1 <= R2 .                                 --- Less than or equal to comparison
+    eq R1 .> R2 = R1 > R2 .                                   --- Greater than comparison
+    eq R1 .>= R2 = R1 >= R2 .                                 --- Greater than or equal to comparison
+
+    --- Absolute value properties
+    eq Abs((Abs(S))) = Abs(S) .         
+    eq Abs((Pow(Abs(S), N))) = Pow(Abs(S), N) . 
+
+    --- Power properties
+    eq Pow(R1, R2) = (R1)^(R2) .                       
+
+   --- Relation between conjugate, absolute value and power
+    eq S .* (S)^* = Pow(Abs(S), 2) .                         --- c . c* = |c|^2
+
+   --- distributive properties
+   
+    eq S1 .* (S2 .+ S3) = S1 .* S2 .+ S1 .* S3 .
+
+    --- Multiplicative properties for scalars
+    eq S .* 1 = S .                                      
+    eq S .* 0 = 0 .                                        
+    
+    ceq S .* (1 ./ S) = 1 
+     if not S :: Rat .  
+
+    ceq (1 ./ S1) .* (1 ./ S2) = 1 ./ (S1 .* S2)
+     if not S1 :: Rat /\ not S2 :: Rat .
+
+    ceq S1 .* (1 ./ (S1 .* S2)) = 1 ./ S2
+     if not S1 :: Rat /\ not S2 :: Rat .
+   
+    --- constructing normal form:
+    ceq (S .* R1 .+ S .* R2) = S .* (R1 .+ R2) 
+     if not S :: Rat .
+
+    ceq S .+ R .* S = S .* (R .+ 1) 
+     if not S :: Rat .
+
+    ceq S .+ S = S .* 2 
+     if not S :: Rat .
+
+    --- constructing normal form:
+    ceq S1 ./ S2 = S1 .* (1 ./ S2) 
+     if not S1 :: Rat .
+
+    ceq R ./ S = R .* (1 ./ S) 
+     if not S :: Rat /\ R =/= 1 .
+
+  --- additive properties
+    eq S .+ 0 = S .
+
+  --- fraction properties
+    eq 0 ./ S = 0 .
+
+    eq S ./ 1 = S .
+
+    ceq S ./ 0 = errS 
+     if S =/= 0 .
+
+    eq 1 ./ (1 ./ S) =  S .
+
+    eq 1 ./ (S1 .* (1 ./ S2)) =  S2 .* (1 ./ S1) .
+
+    eq 1 ./ (S .* (R1 / R2)) =  (R2 / R1) .* (1 ./ S) .
+
+    --- Sqrt calculation
+    eq Sqrt(- N) = i .* Sqrt(N) .
+    eq Sqrt(1) = 1 .
+    eq Sqrt(0) = 0 .
+    eq Sqrt(S) .* Sqrt(S) = S .
+    eq Sqrt(R1 / R2) = Sqrt(R1) .* (1 ./ Sqrt(R2)) .
+    ceq Sqrt(1 ./ S) = 1 ./ Sqrt(S) 
+     if not S :: Rat .
+
+    ceq Sqrt(S1 .* S2) = Sqrt(S1) .* Sqrt(S2) 
+     if not S1 :: Rat or-else not S2 :: Rat .
+
+    eq Sqrt(S) .* (R ./ S) = R .* (1 ./ Sqrt(S)) .
+    eq Sqrt(S1) .* (S2 / S1) = S2 .* (1 ./ Sqrt(S1)) .
+    eq Sqrt(Pow(Abs(S), 2)) = Abs(S) .
+    eq Sqrt(Pow(Pow(S, 2), 2)) = Pow(S, 2) .
+
+    --- transpose of Sqrt
+    eq (Sqrt(R))^* = Sqrt(R) .
+    eq (S1 .* S2)^* = (S1)^* .* (S2)^* .
+    eq (S1 ./ S2)^* = (S1)^* ./ (S2)^* .
+    eq (S1 .+ S2)^* = (S1)^* .+ (S2)^* .
+    eq (R)^* = R .
+endfm
+
+fmod DIRAC is
+    pr SCALAR .
+    sorts Ket Bra .
+
+    ops |0> |1> : -> Ket [ctor] .
+    ops <0| <1| : -> Bra [ctor] .
+    ops |+> |-> : -> Ket [ctor] .
+    ops <+| <-| : -> Bra [ctor] .
+    
+
+endfm
+
+fmod MATRIX is
+  pr DIRAC .
+  pr SCALAR .
+  pr NAT .
+
+  sorts Vector Matrix .
+  subsort Ket < Vector .
+  subsorts Vector Bra < Matrix .
+
+  vars M M1 M2 M3 M4 : Matrix .
+  vars V1 V2 V3 V4 : Vector .
+  vars S S1 S2 : Scalar .
+  vars a c K1 K2 : Ket .
+  var N : Nat .
+  var b : Bra .
+
+  --- zero matrix
+  op O : -> Matrix [ctor] .
+
+  --- identity matrix
+  op I : -> Matrix [ctor] .
+
+  --- fake matrix
+  op nil : -> Matrix [ctor] .
+
+  --- error matrix
+  op errM : -> Matrix [ctor] .
+
+  --- scalar multiplication with matrix
+  op _._ : Scalar Vector -> Vector [prec 31] .
+  op _._ : Scalar Matrix -> Matrix [prec 31] .
+
+  --- matrix product
+  op _x_ : Matrix Matrix -> Matrix [assoc prec 31] .
+
+  --- matrix addition
+  op _+_ : Vector Vector -> Vector [comm assoc prec 33] .
+  op _+_ : Matrix Matrix -> Matrix [comm assoc prec 33] .
+
+  --- tensor product
+  op _(x)_ : Vector Vector -> Vector [assoc prec 31] .
+  op _(x)_ : Matrix Matrix -> Matrix [assoc prec 31] .
+
+  --- dagger
+  op (_)^+ : Matrix -> Matrix [prec 30] .
+
+ --- scalar product
+  op SP(_,_) : Vector Vector -> Scalar .
+
+ ---counting number of vectors in a tensor product
+  op count : Vector -> Nat . 
+
+  eq count(V1 (x) V2) = count(V1) + count(V2) . ---Recursive case: count of a tensor product is the sum of counts of each part
+  eq count(S . V1) = count(V1) . ---Case for scalar multiplication: count is unaffected by scalar
+  eq count(S . V1 + S2 . V2) = count(S . V1) [owise] .
+  eq count(V1 + S2 . V2) = count(V1) [owise] .
+  eq count(S . V1 + V2) = count(S . V1) [owise] .
+  eq count(V1 + V2) = count(V1) [owise] .
+  eq count(K1) = 1 . ---Base case: count of a single vector is 1
+
+
+ --- out of a tensor product of vectors choosing one particular vector
+  op get-vector : Vector Nat -> Vector .
+
+  ---base case
+  ceq get-vector(S . V1, 1) = V1 if count(V1) = 1 . ---reason for keeping this equation first
+  ceq get-vector(V1, 1) = V1 if count(V1) = 1 .
+  
+  ---base case for tensor product
+  eq get-vector(V1 (x) V2, 1) = V1 .
+  eq get-vector(S . V1 (x) V2, 1) = V1 .
+  eq get-vector(V1 (x) S . V2, 1) = V1 .
+  eq get-vector(S1 . V1 (x) S2 . V2, 1) = V1 .
+
+ ---sum of vectors
+  ceq get-vector(V1 + V2, N) = get-vector(V1, N) 
+  if get-vector(V1, N) == get-vector(V2, N) . 
+
+  ceq get-vector(S1 . V1 + S2 . V2, N) = get-vector(V1, N) 
+  if get-vector(V1, N) == get-vector(V2, N) . 
+
+  ceq get-vector(V1 + S2 . V2, N) = get-vector(V1, N) 
+  if get-vector(V1, N) == get-vector(V2, N) . 
+  
+  ceq get-vector(S1 . V1 + V2, N) = get-vector(V1, N) 
+  if get-vector(V1, N) == get-vector(V2, N) . 
+
+  ---in general
+  eq get-vector(V1 (x) V2, N) = get-vector(V2, (N - 1)) [owise] .
+  eq get-vector(S . V1 (x) V2, N) = get-vector(V2, (N - 1)) [owise] .
+  eq get-vector(V1 (x) S . V2, N) = get-vector(V2, (N - 1)) [owise] .
+  eq get-vector(S1 . V1 (x) S2 . V2, N) = get-vector(V2, (N - 1)) [owise] .
+
+  
+op replace-zero : Vector Nat -> Vector . ---replacing nth place of vector in tensor product with vector 0
+
+--- Case 1: Single vector without scalar multiplication
+ceq replace-zero(V1 (x) V2, 1) = |0> (x) V2 if count(V1) = 1 . ---Replace the first vector in the tensor product with |0>
+ceq replace-zero(S . V1, 1) = S . |0> if count(V1) = 1 [owise] .
+ceq replace-zero(V1, 1) = |0> if count(V1) = 1 [owise] .
+ceq replace-zero(S . (V1 (x) V2), 1) = S . (|0> (x) V2) if count(V1) = 1 .
+
+---
+eq replace-zero(V1 (x) V2, N) = V1 (x) replace-zero(V2, N - 1) . ---Recursive case for nth position
+eq replace-zero(S . (V1 (x) V2), N) = S . (V1 (x) replace-zero(V2, N - 1)) .
+eq replace-zero(S1 . V1 (x) S2 . V2, N) = S1 . V1 (x) replace-zero(S2 . V2, N - 1) . 
+eq replace-zero(V1 (x) S2 . V2, N) = V1 (x) replace-zero(S2 . V2, N - 1) . 
+
+--- Case 3: Sum of vectors (iterative)
+eq replace-zero(V1 + V2, N) = replace-zero(V1, N) + replace-zero(V2, N) .
+eq replace-zero(S1 . V1 + S2 . V2, N) = S1 . replace-zero(V1, N) + S2 . replace-zero(V2, N) .
+eq replace-zero(S1 . V1 + V2, N) = S1 . replace-zero(V1, N) + replace-zero(V2, N) .
+eq replace-zero(V1 + S2 . V2, N) = replace-zero(V1, N) + S2 . replace-zero(V2, N) .
+
+ ---Rules for Single Kets
+  eq SP(|0>, |0>) = 1 .
+  eq SP(|+>, |+>) = 1 .
+  eq SP(|1>, |1>) = 1 .
+  eq SP(|->, |->) = 1 .
+  eq SP(|+>, |->) = 0 .
+  eq SP(|->, |+>) = 0 .
+  eq SP(|1>, |0>) = 0 .
+  eq SP(|0>, |1>) = 0 .
+  eq SP(|+>, |0>) = 1 ./ Sqrt(2) .
+  eq SP(|+>, |1>) = 1 ./ Sqrt(2) .
+  eq SP(|->, |0>) = 1 ./ Sqrt(2) .
+  eq SP(|->, |1>) = -1 ./ Sqrt(2) .
+  eq SP(|0>, |+>) = 1 ./ Sqrt(2) .
+  eq SP(|1>, |+>) = 1 ./ Sqrt(2) .
+  eq SP(|0>, |->) = 1 ./ Sqrt(2) .
+  eq SP(|1>, |->) = -1 ./ Sqrt(2) .
+
+   ---Rules for double Kets
+  eq SP(|0> (x) |0>, |0> (x) |0>) = 1 .
+  eq SP(|+> (x) |+>, |+> (x) |+>) = 1 .
+  eq SP(|1> (x) |1>, |1> (x) |1>) = 1 .
+  eq SP(|-> (x) |->, |-> (x) |->) = 1 .
+
+  ---General recursive rules for tensor products
+  eq SP(|0> (x) V1, |0> (x) V2) = SP(V1, V2) .
+  eq SP(|1> (x) V1, |1> (x) V2) = SP(V1, V2) .
+  eq SP(|0> (x) V1, |0> (x) V1) = 1 .
+  eq SP(|0> (x) V1, |1> (x) V2) = 0 [owise] .
+  eq SP(|1> (x) V1, |0> (x) V2) = 0 [owise] .
+
+  ---In general tensor product rules
+  eq SP(S1 . V1, V2) = (S1)^* .* SP(V1, V2) .
+  eq SP(V1, S2 . V2) = S2 .* SP(V1, V2) .
+  eq SP(V1 + V2, V3) = SP(V1, V3) .+ SP(V2, V3) .
+  eq SP(V1, V2 + V3) = SP(V1, V2) .+ SP(V1, V3) .
+  eq SP(K1 (x) V1, K2 (x) V2) = SP(K1, K2) .* SP(V1, V2) .
+  eq (SP(V1, V2))^* = SP(V2, V1) .
+
+    --- zero matrix properties
+    eq 0 . M = O .
+    eq S . O = O .
+    eq 1 . M = M .
+
+    eq O + M = M .
+    eq M + O = M .
+
+    eq O x M = O .
+    eq M x O = O .
+
+    eq M (x) O = O .
+    eq O (x) M = O .
+
+    --- nil matrix
+    eq nil (x) M = M .
+    eq M (x) nil = M .
+    eq M + nil = M .
+    eq S . nil = nil .
+
+    --- identity matrix properties
+    eq I x M = M .
+    eq M x I = M .
+    eq <0| x |0> = I .
+    eq <1| x |1> = I .
+    eq <0| x |1> = O .
+    eq <1| x |0> = O .
+    eq <+| x |+> = I .
+    eq <-| x |-> = I .
+    eq <-| x |+> = O .
+    eq <+| x |-> = O .
+    eq <0| x |+> = (1 ./ Sqrt(2)) . I . ---check
+    eq <1| x |+> = (1 ./ Sqrt(2)) . I . ---check
+    eq <0| x |-> = (1 ./ Sqrt(2)) . I . ---check
+    eq <1| x |-> = (-1 .* 1 ./ Sqrt(2)) . I . ---check
+
+
+    eq (|+> x <+|) x |0> = (SP(|+>, |0>)) . |+> .
+    eq (|+> x <+|) x |1> = (SP(|+>, |1>)) . |+> .
+    eq (|+> x <+|) x |+> = (SP(|+>, |+>)) . |+> .
+    eq (|+> x <+|) x |-> = (SP(|+>, |->)) . |+> .
+
+    eq (|0> x <0|) x |+> = (SP(|0>, |+>)) . |0> .
+    eq (|0> x <0|) x |-> = (SP(|0>, |->)) . |0> .
+    eq (|0> x <0|) x |1> = (SP(|0>, |1>)) . |0> .
+    eq (|0> x <0|) x |0> = (SP(|0>, |0>)) . |0> .
+    eq (|-> x <-|) x |0> = (SP(|->, |0>)) . |-> .
+    eq (|-> x <-|) x |1> = (SP(|->, |1>)) . |-> .
+    eq (|-> x <-|) x |+> = (SP(|->, |+>)) . |-> .
+    eq (|-> x <-|) x |-> = (SP(|->, |->)) . |-> .
+    eq (|1> x <1|) x |+> = (SP(|1>, |+>)) . |1> .
+    eq (|1> x <1|) x |-> = (SP(|1>, |->)) . |1> .
+    eq (|1> x <1|) x |1> = (SP(|1>, |1>)) . |1> .
+    eq (|1> x <1|) x |0> = (SP(|1>, |0>)) . |1> .
+
+    --- dagger properties for single qubit
+    eq (I)^+ = I .
+    eq (O)^+ = O .
+    eq (|0>)^+ = <0| .
+    eq (|1>)^+ = <1| .
+    eq (<0|)^+ = |0> .
+    eq (<1|)^+ = |1> .
+    eq (|+>)^+ = <+| .
+    eq (|->)^+ = <-| .
+    eq (<+|)^+ = |+> .
+    eq (<-|)^+ = |-> .
+
+  ---dagger properties for two qubit system
+    eq (I (x) I)^+ = I .
+    eq (O (x) O)^+ = O .
+    eq (|0> (x) |0>)^+ = <0| (x) <0| .
+    eq (|1> (x) |1>)^+ = <1| (x) <1| .
+    eq (<0| (x) <0|)^+ = |0> (x) |0> .
+    eq (<1| (x) <1|)^+ = |1> (x) |1> .
+    eq (|+> (x) |+>)^+ = <+| (x) <+| .
+    eq (|-> (x) |->)^+ = <-| (x) <-| .
+    eq (<+| (x) <+|)^+ = |+> (x) |+> .
+    eq (<-| (x) <-|)^+ = |-> (x) |-> .
+
+  ---dagger properties for n qubit system
+    eq (|0> (x) V1)^+ = <0| (x) (V1)^+ .
+    eq (|1> (x) V1)^+ = <1| (x) (V1)^+ .
+    eq (|+> (x) V1)^+ = <+| (x) (V1)^+ .
+    eq (|-> (x) V1)^+ = <-| (x) (V1)^+ .
+    eq (V2 (x) V1)^+ = (V2)^+ (x) (V1)^+ .
+
+  ---FOR GENERAL MATRICES
+    eq (S . M)^+ = ((S)^*) . (M)^+ .
+    eq (M1 x M2)^+ = (M2)^+ x (M1)^+ .
+    eq (M1 + M2)^+ = (M1)^+ + (M2)^+ .
+    eq ((M)^+)^+ = M .
+
+    --- ditributive properties
+    eq M1 x (M2 + M3) = M1 x M2 + M1 x M3 .
+    eq (M1 + M2) x M3 = M1 x M3 + M2 x M3 .
+
+    --- additive normal forms
+    eq S . (M1 + M2) = S . M1 + S . M2 .
+    eq (S1 . M) + (S2 . M) = (S1 .+ S2) . M .
+    eq (S1 . M) + M = (S1 .+ 1) . M .
+    eq M + M = 2 . M .
+
+    --- multiplicative normal forms
+    eq (S1 . M1) x (S2 . M2) = (S1 .* S2) . (M1 x M2) .
+    eq (S . M1) x M2 = S . (M1 x M2) .
+    eq M1 x (S . M2) = S . (M1 x M2) .
+
+    --- scalar normal forms
+    eq S1 . (S2 . M) = (S1 .* S2) . M .
+
+    --- tensor product normal forms
+    --- eq (S1 . M1) (x) (S2 . M2) = (S1 .* S2) . (M1 (x) M2) . --- may ignore
+    eq (S . M1) (x) M2 = S . (M1 (x) M2) .
+    eq M1 (x) (S . M2) = S . (M1 (x) M2) .
+
+    --- tensor product properties
+    eq (M1 (x) M2) x (M3 (x) M4) = (M1 x M3) (x) (M2 x M4) .
+    eq M1 (x) (M2 + M3) = M1 (x) M2 + M1 (x) M3 .
+    eq (M1 + M2) (x) M3 = M1 (x) M3 + M2 (x) M3 .
+
+    --- basic matrices
+    ops B0 B1 B2 B3 P0 P1 : -> Matrix .
+    eq B0 = |0> x <0| .
+    eq B1 = |0> x <1| .
+    eq B2 = |1> x <0| .
+    eq B3 = |1> x <1| .
+    eq P0 = B0 . ---why P0 is defined, we do not know
+    eq P1 = B3 . ---why P1 is defined, we do not know
+ 
+
+    --- basic gates
+    ops X Y Z H S T CX CY CZ SWAP CCX CCZ CSWAP : -> Matrix .
+    eq X = B1 + B2 .
+       --- eq |+> x <+| = (1 ./ 2) . (I + B1 + B2) .
+    eq Y = ((-1) .* i) . B1 + i . B2 .
+    eq Z = B0  + (-1) . B3 .
+    eq H = 1 ./ Sqrt(2) . B0 + 1 ./ Sqrt(2) . B1 + 1 ./ Sqrt(2) . B2 + (-1) ./ Sqrt(2) . B3 .
+    eq S = B0 + i . B3 .
+    eq T = B0 + ((1 + i) ./ Sqrt(2)) . B3 .
+    eq CX = B0 (x) I + B3 (x) X .
+    eq CY = B0 (x) I + B3 (x) Y .
+    eq CZ = B0 (x) I + B3 (x) Z .
+    --- SWAP(N1, N2) = CX(N1, N2) x CX(N2, N1) x CX(N1, N2)
+    eq SWAP = (B0 (x) I + B3 (x) X) x (I (x) B0 + X (x) B3) x (B0 (x) I + B3 (x) X) .
+    --- CCX = B0(x)I(x)I + B3(x)B0(x)I + B3(x)B3(x)B1 + B3(x)B3(x)B2
+    eq CCX = B0 (x) I (x) I + B3 (x) CX . 
+    --- CCZ = B0(x)I(x)I + B3(x)B0(x)I + B3(x)B3(x)B0 + (-1) . B3(x)B3(x)B3
+    eq CCZ = B0 (x) I (x) I + B3 (x) CZ . 
+    --- CSWAP = B0(x)I(x)I + B3(x)B0(x)B0 + B3(x)B1(x)B2 + B3(x)B2(x)B1 + B3(x)B3(x)B3
+    eq CSWAP = B0 (x) I (x) I + B3 (x) SWAP .
+
+   eq (1 ./ Sqrt(2)) . |0> + (1 ./ Sqrt(2)) . |1> = |+> . 
+   eq (1 ./ Sqrt(2)) . |0> + (-1 .* 1 ./ Sqrt(2)) . |1> = |-> . 
+   eq (-1 .* 1 ./ Sqrt(2)) . |0> + (1 ./ Sqrt(2)) . |1> = -1 . |-> . 
+   eq (i .* 1 ./ Sqrt(2)) . |0> + (i .* 1 ./ Sqrt(2)) . |1> = i . |+> .
+   eq (i .* 1 ./ Sqrt(2)) . |1> + (i .* -1 .* 1 ./ Sqrt(2)) . |0> = i . (-1 . |->) .
+   eq (i .* -1 .* 1 ./ Sqrt(2)) . |0> + (i .* -1 .* 1 ./ Sqrt(2)) . |1> = i . (-1 . |+>) .
+  
+
+
+
+endfm
+
+fmod QUBIT is
+    pr MATRIX .
+    pr NAT-LIST .
+
+    sorts OneQubit EnQubit Qubit QState .
+    subsort OneQubit < EnQubit < Qubit < QState .
+
+    vars N N1 N2 N3 : Nat .
+    var V V1 V2 : Vector .
+    var NL : NatList .
+    var Q1 : Qubit .
+
+    --- empty and error qubit definitions
+    op emp : -> Qubit [ctor] .
+    op errQ : -> Qubit [ctor] . ---do not know where error qubit is used
+
+    --- Qubit construction
+    op (q[_]:_) : NatList Vector -> Qubit .
+    mb(q[N]: V) : OneQubit .          --- Single qubit representation
+    mb(q[N1 N2 NL]: V) : EnQubit .    --- Multiple qubit representation  
+
+    --- remove unnecessary qubits
+    eq (q[nil]: V) = emp .
+
+    op __ : Qubit Qubit -> Qubit [ctor assoc comm id: emp] .           --- Combine two qubits
+
+endfm
+
+
+fmod Q-SYNTAX is
+    pr QUBIT .
+    pr MATRIX .
+    pr DIRAC .
+    pr BOOL .
+
+    sorts AtomicProg D Prog .
+    
+    sorts Conf QConf ListQConf .
+    subsort Conf < QConf .
+    subsort Qubit < QConf .
+    subsort QConf < ListQConf .
+    subsort AtomicProg < D < Prog .
+
+
+    vars N N1 N2 N3 N4 n : Nat .
+    vars M M1 M2 M3 M4 P : Matrix .
+    vars NL NL1 NL2 NL3 NL4 NL5 NL6 : NatList .
+    var QS Q Q1 Q2 u u1 u2 Q3 : Qubit .
+    vars S S1 S2 Prob : Scalar .
+    vars Ket Ket1 Ket2 : Ket .
+    vars V V1 V2 V3 : Vector .
+    var C C1 C2 C3 C4 : Prog .
+    var Tail Tail1 : ListQConf .
+    var CS : QConf .
+    var d D1 D2 : D .
+  
+--- atomic programs
+    op I`(_`) : Nat -> AtomicProg [ctor] .         --- Identity gate
+    op X`(_`) : Nat -> AtomicProg [ctor] .         --- Pauli-X gate
+    op Y`(_`) : Nat -> AtomicProg [ctor] .         --- Pauli-Y gate 
+    op Z`(_`) : Nat -> AtomicProg [ctor] .
+    op H`(_`) : Nat -> AtomicProg [ctor] .
+    op CX`(_,_`) : Nat Nat -> AtomicProg [ctor] .
+    op CZ`(_,_`) : Nat Nat -> AtomicProg [ctor] .
+    op CCX`(_,_,_`) : Nat Nat Nat -> AtomicProg [ctor] .
+    op SWAP`(_,_`) : Nat Nat -> AtomicProg [ctor] .
+
+
+    
+--- D programs
+    op skip : -> D [ctor] .                         --- constant program
+    op _;_ : D D -> D [ctor prec 25 gather (e E)] . --- composition
+    op MEAS-await`(_`) : Nat -> D .                       ---measurement in basis 0 and 1
+    op Measure-await`(_,_,_`) : Nat D D -> D .      ---measuring and then applying programs C1 and C2
+   
+    
+--- programs                                 
+    op _+_ : Prog Prog -> Prog [ctor prec 26 gather (e E)] .   --- non-deterministic choices
+    op _||_ : Prog Prog -> Prog [ctor] . 
+    op _;_ : Prog Prog -> Prog [ctor prec 25 gather (e E)] .   --- TO SEE WHERE THE AUTHOR DEFINED THIS OPERATOR                                                       
+    op await`(_,_`) : Nat D -> Prog .                        --- AWAIT COMMAND,                   
+    op Measure`(_,_,_`) : Nat Prog Prog -> Prog . 
+    op MEAS`(_`) : Nat -> Prog . 
+
+--- formulas
+    sorts AtomicFormula Formula .
+    subsort AtomicFormula < Formula .
+
+    
+--- quantum dynamic logic formulas
+    op _/\_ : Formula Formula -> Formula [ctor assoc comm] .   --- conjunction formula
+    op neg_ : Formula -> Formula .                             --- negation formula
+    op `[_`]_ : Prog Formula -> Formula [ctor] .               --- box formula
+    op _? : Formula -> Prog [ctor prec 24] . 
+
+--- testable properties
+    op P`(_,_`) : Nat Matrix -> AtomicFormula [ctor] .       
+
+  ---Configuration
+    op <_,_> : Prog Qubit -> Conf .
+    op nilList : -> ListQConf [ctor] .
+    op _,_ : ListQConf ListQConf -> ListQConf [ctor assoc id: nilList] .
+   
+  ---smallStep
+    op smallStep : ListQConf -> ListQConf . ---because smallstep is also defined for smallstep((C1,Q1), (C2,Q2)) = smallstep(C1,Q1), smallstep(C2,Q2)
+    op bigStep : ListQConf -> ListQConf .
+   
+    ---eq (Tail, nilList) = Tail . this producing an error in teleport protocol
+    ---eq (nilList, Tail) = Tail .
+
+
+    --- applying hadmard gate
+    op _.H(_) : ListQConf Nat -> ListQConf .
+    ceq ((q[NL1 N NL2]: V) QS).H(N) = (q[NL1 N NL2]: M x V) QS
+    if M := I[size(NL1)] (x) H (x) I[size(NL2)] .
+
+    --- applying I gate
+    op _.I(_) : ListQConf Nat -> ListQConf .
+    eq (QS).I(N) = QS .
+
+    --- applying X gate
+    op _.X(_) : ListQConf Nat -> ListQConf .
+    ceq ((q[NL1 N NL2]: V) QS).X(N) = (q[NL1 N NL2]: M x V) QS
+    if M := I[size(NL1)] (x) X (x) I[size(NL2)] .
+
+    --- applying Y gate
+    op _.Y(_) : ListQConf Nat -> ListQConf .
+    ceq ((q[NL1 N NL2]: V) QS).Y(N) = (q[NL1 N NL2]: M x V) QS
+    if M := I[size(NL1)] (x) Y (x) I[size(NL2)] .                  
+
+    --- applying Z gate
+    op _.Z(_) : ListQConf Nat -> ListQConf .
+    ceq ((q[NL1 N NL2]: V) QS).Z(N) = (q[NL1 N NL2]: M x V) QS
+    if M := I[size(NL1)] (x) Z (x) I[size(NL2)] .
+
+    ---applying CCX gate
+  op _.CCX(_,_,_) : ListQConf Nat Nat Nat -> ListQConf .
+
+  --- Case 1: All Three Qubits Are in a Single State in Increasing Order
+   ceq ((q[NL1 N1 NL2 N2 NL3 N3 NL4]: V) QS).CCX(N1, N2, N3)
+   = ((q[NL1 N1 NL2 N2 NL3 N3 NL4]: M x V)) QS
+   if M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x) B0 (x)
+        I[size(NL3)] (x) I (x) I[size(NL4)]
+   /\ M2 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x) B3 (x)
+        I[size(NL3)] (x) I (x) I[size(NL4)]
+   /\ M3 := I[size(NL1)] (x) B3 (x) I[size(NL2)] (x) B0 (x)
+        I[size(NL3)] (x) I (x) I[size(NL4)]
+   /\ M4 := I[size(NL1)] (x) B3 (x) I[size(NL2)] (x) B3 (x)
+        I[size(NL3)] (x) X (x) I[size(NL4)]
+/\ M := M1 + M2 + M3 + M4 .
+
+
+    --- applying CX gate
+    op _.CX(_,_) : ListQConf Nat Nat -> ListQConf .
+    ceq ((q[NL1 N1 NL2]: V1) (q[NL3 N2 NL4]: V2) QS).CX(N1, N2)
+    = ((q[NL1 N1 NL2 NL3 N2 NL4]: M x V)) QS
+    if V := V1 (x) V2
+    /\ M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x)
+            I[size(NL3)] (x) I (x) I[size(NL4)]
+    /\ M2 := I[size(NL1)] (x) B3 (x) I[size(NL2)] (x)
+            I[size(NL3)] (x) X (x) I[size(NL4)]
+    /\ M := M1 + M2 .
+
+    ceq ((q[NL1 N1 NL2 N2 NL3]: V) QS).CX(N1, N2) = ((q[NL1 N1 NL2 N2 NL3]: M x V)) QS
+    if M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x) I (x) I[size(NL3)]
+    /\ M2 := I[size(NL1)] (x) B3 (x) I[size(NL2)] (x) X (x) I[size(NL3)]
+    /\ M := M1 + M2 .
+
+    ceq ((q[NL1 N2 NL2 N1 NL3]: V) QS).CX(N1, N2) = ((q[NL1 N2 NL2 N1 NL3]: M x V)) QS
+    if M1 := I[size(NL1)] (x) I (x) I[size(NL2)] (x) B0 (x) I[size(NL3)]
+    /\ M2 := I[size(NL1)] (x) X (x) I[size(NL2)] (x) B3 (x) I[size(NL3)]
+    /\ M := M1 + M2 .
+
+
+    --- applying CZ gate
+    op _.CZ(_,_) : ListQConf Nat Nat -> ListQConf .
+    ceq ((q[NL1 N1 NL2]: V1) (q[NL3 N2 NL4]: V2) QS).CZ(N1, N2)
+    = ((q[NL1 N1 NL2 NL3 N2 NL4]: M x V)) QS
+    if V := V1 (x) V2
+    /\ M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x)
+            I[size(NL3)] (x) I (x) I[size(NL4)]
+    /\ M2 := I[size(NL1)] (x) B3 (x) I[size(NL2)] (x)
+            I[size(NL3)] (x) Z (x) I[size(NL4)]
+    /\ M := M1 + M2 .
+
+    ceq ((q[NL1 N1 NL2 N2 NL3]: V) QS).CZ(N1, N2) = ((q[NL1 N1 NL2 N2 NL3]: M x V)) QS
+    if M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x) I (x) I[size(NL3)]
+    /\ M2 := I[size(NL1)] (x) B3 (x) I[size(NL2)] (x) Z (x) I[size(NL3)]
+    /\ M := M1 + M2 .
+
+    ceq ((q[NL1 N2 NL2 N1 NL3]: V) QS).CZ(N1, N2) = ((q[NL1 N2 NL2 N1 NL3]: M x V)) QS
+    if M1 := I[size(NL1)] (x) I (x) I[size(NL2)] (x) B0 (x) I[size(NL3)]
+    /\ M2 := I[size(NL1)] (x) Z (x) I[size(NL2)] (x) B3 (x) I[size(NL3)]
+    /\ M := M1 + M2 .
+
+    --- applying SWAP gate
+    --- SWAP = (B0 (x) I + B3 (x) X) x (I (x) B0 + X (x) B3) x (B0 (x) I + B3 (x) X) .
+    op _.SWAP(_,_) : ListQConf Nat Nat -> ListQConf .
+    ceq ((q[NL1 N1 NL2]: V1) (q[NL3 N2 NL4]: V2) QS).SWAP(N1, N2)
+    = ((q[NL1 N1 NL2 NL3 N2 NL4]: M x V)) QS
+    if V := V1 (x) V2
+    /\ M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x)
+             I[size(NL3)] (x) I (x) I[size(NL4)] +
+             I[size(NL1)] (x) B3 (x) I[size(NL2)] (x)
+             I[size(NL3)] (x) X (x) I[size(NL4)]
+    /\ M2 := I[size(NL1)] (x) I (x) I[size(NL2)] (x)
+             I[size(NL3)] (x) B0 (x) I[size(NL4)] +
+             I[size(NL1)] (x) X (x) I[size(NL2)] (x)
+             I[size(NL3)] (x) B3 (x) I[size(NL4)]
+    /\ M := M1 x M2 x M1 .
+
+    ceq ((q[NL1 N1 NL2 N2 NL3]: V) QS).SWAP(N1, N2)
+    = ((q[NL1 N1 NL2 N2 NL3]: M x V)) QS
+    if M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x) I (x) I[size(NL3)] +
+             I[size(NL1)] (x) B3 (x) I[size(NL2)] (x) X (x) I[size(NL3)]
+    /\ M2 := I[size(NL1)] (x) I (x) I[size(NL2)] (x) B0 (x) I[size(NL3)] +
+             I[size(NL1)] (x) X (x) I[size(NL2)] (x) B3 (x) I[size(NL3)]
+    /\ M := M1 x M2 x M1 .
+
+    ceq ((q[NL1 N2 NL2 N1 NL3]: V) QS).SWAP(N1, N2)
+    = ((q[NL1 N2 NL2 N1 NL3]: M x V)) QS
+    if M1 := I[size(NL1)] (x) B0 (x) I[size(NL2)] (x) I (x) I[size(NL3)] +
+             I[size(NL1)] (x) B3 (x) I[size(NL2)] (x) X (x) I[size(NL3)]
+    /\ M2 := I[size(NL1)] (x) I (x) I[size(NL2)] (x) B0 (x) I[size(NL3)] +
+             I[size(NL1)] (x) X (x) I[size(NL2)] (x) B3 (x) I[size(NL3)]
+    /\ M := M1 x M2 x M1 .
+
+
+  ---Applying tozero
+  op _.tozero(_) : ListQConf Nat -> ListQConf .
+   eq ((q[NL1 N NL2]: V) QS).tozero(n) = (q[NL1 N NL2]: replace-zero(V, n)) QS .  
+
+   ceq (Q , Tail).tozero(n) = (((Q).tozero(n)) , ((Tail).tozero(n))) 
+    if count-qconf(Tail) >= 1 .
+    
+  ceq (Tail).tozero(n) = (((Q1).tozero(n)) , ((Tail1).tozero(n))) 
+    if (Q1, Tail1) := Tail /\ count-qconf(Tail) > 1 .
+ 
+
+---counting number of vectors in a tensor product
+  op count-qconf : ListQConf -> Nat . 
+  eq count-qconf(nilList) = 0 .
+  eq count-qconf(CS) = 1 [owise] .
+  eq count-qconf(CS, Tail) = 1 + count-qconf(Tail) . 
+
+ 
+  --- projections
+  op _.P`(_,_`) : ListQConf Nat Matrix -> ListQConf . 
+
+  eq ((q[NL1 N NL2]: V1) QS).P(N, P) = nilList [owise]. 
+
+  ---eq ((q[NL1 N NL2]: (S . V1)) QS).P(N, P) = nilList [owise] . 
+
+    ceq ((q[NL1 N NL2]: V1) QS).P(N, P) = (q[NL1 N NL2]: V2) QS
+    if V2 := (I[size(NL1)] (x) (P x (P)^+) (x) I[size(NL2)]) x V1 . 
+
+    ceq (Q , Tail).P(N, P) = (((Q).P(N, P)) , ((Tail).P(N, P))) 
+     if count-qconf(Tail) >= 1 .
+    
+    ceq (Tail).P(N, P) = (((Q1).P(N, P)) , ((Tail1).P(N, P))) 
+     if (Q1, Tail1) := Tail /\ count-qconf(Tail) > 1 .
+
+----------------------------------------------------------
+ 
+  op _.Measure`(_,_,_`) : ListQConf Nat Prog Prog -> ListQConf . -------defining measurementin sequential format
+  eq ((q[NL1 N NL2]: V) (QS)).Measure(N, C1, C2) = smallStep(< C1 , (((q[NL1 N NL2]: V) (QS)).P(N, |0>)) >) , smallStep(< C2, (((q[NL1 N NL2]: V) (QS)).P(N, |1>)) >) .
+
+-----------------------------------------------------------------------
+
+op _.Measure-await`(_,_,_`) : ListQConf Nat D D -> ListQConf . -------defining measurementin sequential format
+eq ((q[NL1 N NL2]: V) (QS)).Measure-await(N, D1, D2) = smallStep(< D1 , (((q[NL1 N NL2]: V) (QS)).P(N, |0>)) >) , smallStep(< D2, (((q[NL1 N NL2]: V) (QS)).P(N, |1>)) >) .
+
+  
+op _.MEAS`(_`) : ListQConf Nat -> ListQConf .   ---projecting on 0 or 1
+eq (Q).MEAS(N) = (((Q).P(N, |0>)) , ((Q).P(N, |1>))) .
+
+   
+op _.MEAS-await`(_`) : ListQConf Nat -> ListQConf .   ---projecting on 0 or 1
+eq (Q).MEAS-await(N) = (((Q).P(N, |0>)) , ((Q).P(N, |1>))) .
+
+
+--- N -> I (x) I (x) ...
+op I[_] : Nat -> Matrix .
+eq I[0] = nil .
+ceq I[N] = I (x) I[sd(N, 1)] if N > 0 .
+
+
+endfm
+
+
+fmod Q-SEMANTICS is
+pr Q-SYNTAX .
+pr QUBIT .
+pr MATRIX .
+pr DIRAC .
+pr BOOL .
+
+---SEMANTICS---
+
+---subsort Vector < Qubit .
+
+vars N N1 N2 N3 NL n Index Max : Nat .
+vars C C1 C2 C3 C4 : Prog .
+vars Q Q1 Q3 Q2 Q4 Q5 : Qubit .
+var d : D .
+vars u u1 u2 V1 V2 : Vector .
+vars NL1 NL2 NL3 NL4 : NatList .
+var CS : QConf . 
+var Tail Accum L L1 L2 : ListQConf .
+vars D1 D2 : D .
+
+
+
+op None : -> QConf [ctor] . 
+op NoneProg : -> Prog [ctor] .
+
+-----------------------------------------------------
+
+---smallStep for unitaries 
+eq smallStep(< skip, Q >) = Q .
+eq smallStep(< I(N), Q >) = Q . 
+eq smallStep(< X(N), Q >) = (Q).X(N) .
+eq smallStep(< Y(N), Q >) = (Q).Y(N) .
+eq smallStep(< Z(N), Q >) = (Q).Z(N) .
+eq smallStep(< H(N), Q >) = (Q).H(N) .
+eq smallStep(< CX(N1,N2), Q >) = (Q).CX(N1, N2) .
+eq smallStep(< SWAP(N1,N2), Q >) = (Q).SWAP(N1, N2) .
+eq smallStep(< CZ(N1,N2), Q >) = (Q).CZ(N1, N2) .
+eq smallStep(< CCX(N1,N2,N3), Q >) = (Q).CCX(N1, N2, N3) .
+
+---small step semantics for measurement
+eq smallStep(< MEAS-await(N), Q >) = (Q).MEAS-await(N) .  
+eq smallStep(< MEAS(N), Q >) = (Q).MEAS(N) .  
+eq smallStep(< Measure-await(N, D1, D2), Q >) = (Q).Measure-await(N, D1, D2) .
+eq smallStep(< Measure(N, C1, C2), Q >) = (Q).Measure(N, C1, C2) .
+eq smallStep(< C, nilList >) = nilList .
+
+----------------------------------------------------------------------------------------------  
+
+
+--- Select nth configuration from ListQConf
+  op get-qconf : Nat ListQConf -> QConf .
+  op get-qconf-helper : Nat ListQConf Nat -> QConf .
+
+  eq get-qconf(N, Tail) = get-qconf-helper(N, Tail, 1) .  --- Start traversal with an initial position of 1
+  ceq get-qconf-helper(N1, (CS, Tail), N2) = CS   --- Base case: If the current position matches N, return the head.
+    if N1 == N2 .
+
+  ceq get-qconf-helper(N1, (CS, Tail), N2) = get-qconf-helper(N1, Tail, N2 + 1)   --- Recursive case: Increment position and continue traversing.
+    if N1 > N2 .
+
+  eq get-qconf-helper(N1, nilList, N2) = None [owise] . --- Error case: If the list is empty or position is out of bounds.
+
+-------------------------------------------------------------
+
+ op get-prog : QConf -> Prog .
+ eq get-prog(< C, Q >) = C .
+ eq get-prog(Q1) = NoneProg .
+
+ op get-qubit : QConf -> Qubit .
+ eq get-qubit(< C, Q >) = Q .
+ eq get-qubit(Q1) = Q1 .
+
+ --------------------------------------------------------------------------------------------
+
+op noList : -> ListQConf [ctor].
+eq (CS, noList) = noList .
+
+
+--- Main function to append only lists containing qubits.
+  op append-qubits : ListQConf -> ListQConf .
+
+eq append-qubits(nilList) = nilList .
+ceq append-qubits(Q, Tail) = (Q, append-qubits(Tail)) 
+if Q : Qubit .
+
+ceq append-qubits(CS, Tail) = noList 
+if CS : Conf .
+
+----------------------------------------------------------------------
+
+
+op generate-seq : Prog ListQConf ListQConf Nat Nat -> ListQConf . --- Recursive function to construct the resulting list.
+
+
+eq smallStep(< C1 ; C2, Q1 >) = generate-seq(C2, nilList, smallStep(< C1, Q1 >), 1, count-qconf(smallStep(< C1, Q1 >))) .  --- Generalized rule for multiple configurations.
+
+eq < NoneProg ; C2 , Q > = < C2, Q > .
+---eq ( < C , Q > , nilList ) = < C, Q > .
+
+ceq generate-seq(C2, Accum, Tail, Index, Max) =
+    (< get-prog(get-qconf(Index, Tail)) ; C2 , get-qubit(get-qconf(Index, Tail)) > , Accum)
+    if Index == Max .                          --- Base case: Add the last configuration to the result and stop.
+
+ 
+  ceq generate-seq(C2, Accum, Tail, Index, Max) =
+    generate-seq(
+      C2,
+      (< get-prog(get-qconf(Index, Tail)) ; C2 , get-qubit(get-qconf(Index, Tail)) > , Accum),
+      Tail,
+      Index + 1,
+      Max
+    ) if Index < Max .                        --- Recursive case: Add the current configuration and proceed to the next.
+
+-------------------------------------------------------------------------
+
+--- Parallel composition
+
+eq smallStep(< C1 || C2, Q1 >) = (generate-parL(C2, nilList, smallStep(< C1, Q1 >), 1, count-qconf(smallStep(< C1, Q1 >))), generate-parR(C1, nilList, smallStep(< C2, Q1 >), 1, count-qconf(smallStep(< C2, Q1 >)))) .
+op generate-parL : Prog ListQConf ListQConf Nat Nat -> ListQConf . --- Recursive function to construct the resulting list.
+op generate-parR : Prog ListQConf ListQConf Nat Nat -> ListQConf . --- Recursive function to construct the resulting list.
+
+eq < NoneProg || C2 , Q > = < C2, Q > .
+eq < C2 || NoneProg , Q > = < C2, Q > .
+---eq ( < C , Q > , nilList ) = < C, Q > .
+
+ceq generate-parL(C2, Accum, Tail, Index, Max) =
+    (< get-prog(get-qconf(Index, Tail)) || C2 , get-qubit(get-qconf(Index, Tail)) > , Accum)
+    if Index == Max .                          --- Base case: Add the last configuration to the result and stop.
+
+ 
+ceq generate-parL(C2, Accum, Tail, Index, Max) =
+    generate-parL(
+      C2,
+      (< get-prog(get-qconf(Index, Tail)) || C2 , get-qubit(get-qconf(Index, Tail)) > , Accum),
+      Tail,
+      Index + 1,
+      Max
+    ) if Index < Max .                        --- Recursive case: Add the current configuration and proceed to the next.
+
+
+ceq generate-parR(C1, Accum, Tail, Index, Max) =
+    (< get-prog(get-qconf(Index, Tail)) || C1 , get-qubit(get-qconf(Index, Tail)) > , Accum)
+    if Index == Max .                          --- Base case: Add the last configuration to the result and stop.
+
+ 
+ceq generate-parR(C1, Accum, Tail, Index, Max) =
+    generate-parR(
+      C1,
+      (< get-prog(get-qconf(Index, Tail)) || C1 , get-qubit(get-qconf(Index, Tail)) > , Accum),
+      Tail,
+      Index + 1,
+      Max
+    ) if Index < Max .                        --- Recursive case: Add the current configuration and proceed to the next.
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+
+--- Non-deterministic choice
+
+eq smallStep(< C1 + C2, Q1 >) = (smallStep(< C1, Q1 >) , smallStep(< C2, Q1 >)) .
+
+-------------------------------------------------------------------------------------------------------
+
+----big step
+
+ceq bigStep(CS , Tail) = ((bigStep(CS)) , (bigStep(Tail)))
+ if count-qconf(Tail) >= 1 .
+
+eq bigStep(nilList) = nilList .
+eq bigStep(Q1) = Q1 . ---bigStep of qubit is the same qubit 
+
+ceq bigStep(< C, Q >) = smallStep(< C, Q >) 
+ if append-qubits(smallStep(< C, Q >)) =/= noList .  ---refl, if smallStep of <C,Q> is qubit
+
+ceq bigStep(< C1, Q1 >) = (Q3) 
+ if < C2, Q2 > := smallStep(< C1, Q1 >) /\ Q3 := bigStep(< C2, Q2 >) . ---trans, if smallStep of <C,Q> is configuration
+
+ eq bigStep(Tail) = bigStep(smallStep(Tail)) [owise] .
+
+--------------------------------------------------------------------------------------------------------------
+---await command    
+
+ceq smallStep(< (await(n, d)), (q[NL1 N NL2]: u1) >) = (< (await(n, d)), (q[NL1 N NL2]: u1) >) 
+ if get-vector(u1, n) = |0> .   ---aw3
+
+eq smallStep(< (await(n, d)), (q[NL1 N NL2]: u1) >) = (bigStep(< d, (q[NL1 N NL2]: u1) >)).tozero(n) [owise] .
+   ---aw2
+
+
+
+
+---smallStep
+
+ceq smallStep(CS , Tail) = ((smallStep(CS)) , (smallStep(Tail)))
+ if count-qconf(Tail) >= 1 .
+
+---eq smallStep(nilList) = nilList .  ---Empty list produces no configurations
+
+
+--- Removing duplicate elements in a ListQConf
+op rmvRep : ListQConf -> ListQConf .
+
+--- Base case: an empty list remains empty
+eq rmvRep(nilList) = nilList .
+
+--- Recursive case: remove duplicates iteratively
+eq rmvRep((Q1 , Tail)) = (Q1, rmvRep(removeQConf(Q1, Tail))) .
+
+--- Helper function to remove all occurrences of a QConf from a ListQConf
+op removeQConf : Qubit ListQConf -> ListQConf .
+eq removeQConf(Q, nilList) = nilList .
+
+ceq removeQConf((q[NL1 N NL2]: V1), ((q[NL3 N1 NL4]: V2), Tail)) = removeQConf((q[NL1 N NL2]: V1), Tail) 
+ if V1 == V2 /\ N == N1 /\ NL1 == NL3 /\ NL2 == NL4 .
+
+  
+eq removeQConf(Q, (Q1, Tail)) = (Q1, removeQConf(Q, Tail)) [owise] .
+
+
+endfm
+
+fmod SATISFACTION-RELATION is
+ pr Q-SEMANTICS .
+ pr Q-SYNTAX .
+ pr BOOL .
+
+var Q Q1 Q2 : Qubit .
+vars N N1 N2 : Nat .
+var M : Matrix .
+vars Phi Psi Phi1 Phi2 Phi3 Phi4 : Formula .
+var C : Prog .
+var Tail : ListQConf .
+
+--- Satisfaction Relation |=
+op _|=_ : ListQConf Formula -> Bool .
+
+--- Formula satisfaction for atomic formulas
+ceq Tail |= P(N, M) = true if (Tail).P(N, M) == Tail .
+ceq Tail |= P(N, M) = false if (Tail).P(N, M) =/= Tail .
+
+--- negation of testable properties
+eq neg P(N, |0>) = P(N, |1>) .
+eq neg P(N, |1>) = P(N, |0>) .
+
+--- conjunction
+eq (Q |= (Phi /\ Psi)) = (Q |= Phi) and (Q |= Psi) .  
+eq (Tail |= (Phi /\ Psi)) = (Tail |= Phi) and (Tail |= Psi) . 
+
+--- Satisfaction for box operator [C]phi
+ceq (Q |= [C] Phi) = true if ((bigStep(< C, Q >)) |= Phi) .
+ceq (Q |= [C] Phi) = false if not ((bigStep(< C, Q >)) |= Phi) .
+
+endfm                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+

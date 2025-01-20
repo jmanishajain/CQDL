@@ -1,0 +1,44 @@
+load ./matterhorns.maude .
+
+fmod TELEPORT is
+  pr SCALAR .
+  pr DIRAC .
+  pr MATRIX .
+  pr QUBIT .
+  pr Q-SYNTAX .
+  pr Q-SEMANTICS .
+  pr SATISFACTION-RELATION .
+
+    var S : Scalar .
+    ops a b : -> Scalar .
+    eq Pow(Abs(a), 2) .+ Pow(Abs(b), 2) = 1 .
+    eq S .* Pow(Abs(a), 2) .+ S .* Pow(Abs(b), 2) = S .
+
+    --- sequential version
+    op inQSt : -> Qubit .
+    eq inQSt = (q[1]: a . |0> + b . |1>) (q[2]: |0>) (q[3]: |0>) .
+    
+    ops Charlie Alice Bob qTele : -> Prog .
+    eq Charlie = H(2) ; CX(2,3) . 
+    eq Alice = CX(1, 2) ; H(1) .
+    eq Bob = Measure(2, skip, X(3)) ; Measure(1, skip, Z(3)) .
+    eq qTele = Charlie ; Alice ; Bob .
+
+    --- for parallel await version
+    op inQStP : -> Qubit .
+    eq inQStP = (q[1]: a . |0> + b . |1>) (q[2 3 4 5 6]: |0> (x) |0> (x) |0> (x) |1> (x) |1>) .
+    
+    ops BobX BobZ qTeleP : -> Prog .
+    eq BobX = await(6, Measure-await(4, Measure-await(2, skip, X(3)), Measure-await(2, skip, X(3) ; Z(4)))) .
+    eq BobZ = await(5, Measure-await(1, skip, Z(3) ; X(4))) .
+    eq qTeleP = Charlie ; Alice ; (BobX || BobZ) .
+endfm
+
+---Sequential
+red in TELEPORT : rmvRep(bigStep(< qTele, inQSt >)) . 
+red in TELEPORT : inQSt |= [qTele] (P(3, (a . |0> + b . |1>))) .
+
+---Parallel
+red in TELEPORT : inQStP |= [qTeleP] (P(3, (a . |0> + b . |1>))) .
+red in TELEPORT : rmvRep(bigStep(< qTeleP, inQStP >)) . 
+

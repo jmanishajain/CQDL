@@ -1,0 +1,48 @@
+load ./matterhorns.maude .
+
+fmod QSS is
+  pr SCALAR .
+  pr DIRAC .
+  pr MATRIX .
+  pr QUBIT .
+  pr Q-SYNTAX .
+  pr Q-SEMANTICS .
+  pr SATISFACTION-RELATION . 
+
+    var S : Scalar .
+    ops a b : -> Scalar .
+    eq Pow(Abs(a), 2) .+ Pow(Abs(b), 2) = 1 .
+    eq S .* Pow(Abs(a), 2) .+ S .* Pow(Abs(b), 2) = S .
+
+    --- initial state
+    op inQSt : -> Qubit .
+    eq inQSt = (q[1]: a . |0> + b . |1>) (q[2 3 4]: |0> (x) |0> (x) |0>) .
+
+    --- sequential version
+    ops Charlie Alice Bob qss ghz : -> Prog .
+    eq ghz = H(2) ; CX(2,3) ; CX(3,4) .
+    eq Alice = CX(1, 2) ; H(1) .
+    eq Bob = H(3) . 
+    eq Charlie = Measure(1,
+       Measure(2, Measure(3, skip, Z(4)), Measure(3, X(4), X(4) ; Z(4))),
+       Measure(2, Measure(3, Z(4), skip), Measure(3, X(4) ; Z(4), X(4)))) . 		 
+    eq qss = ghz ; Alice ; Bob ; Charlie .
+
+    ---parallel version
+    op qssP : -> Prog .
+    eq qssP = ghz ; (Alice || Bob) ; Charlie .
+endfm
+
+----in load C:/Users/mjain50701/Maudepeople/debug.maude .
+
+---Sequential
+red in QSS :  rmvRep(bigStep(< qss, inQSt >)) .
+red in QSS : inQSt |= [qss] P(4, (a . |0> + b . |1>)) .
+
+---Parallel
+red in QSS :  rmvRep(bigStep(< qssP, inQSt >)) .    
+red in QSS : inQSt |= [qssP] P(4, (a . |0> + b . |1>)) .
+
+
+
+

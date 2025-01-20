@@ -1,0 +1,23 @@
+load ./matterhorns.maude .
+
+fmod AWAIT is
+  pr SCALAR .
+  pr DIRAC .
+  pr MATRIX .
+  pr QUBIT .
+  pr Q-SYNTAX .
+  pr Q-SEMANTICS .
+  pr SATISFACTION-RELATION . 
+
+    op inQSt : -> Qubit .
+    eq inQSt = (q[1 2]: |0> (x) |0>) .
+
+    ops P1, P2 : -> Prog .
+    eq P1 = X(2) ; await(2, Measure-await(1, skip, skip)) .
+    eq P2 = H(1) .
+    
+endfm
+
+red in AWAIT : inQSt |= [ P1 || P2 ] (P(2, |0>)) .
+
+red in AWAIT : rmvRep(bigStep(< P1 || P2, inQSt >)) . 

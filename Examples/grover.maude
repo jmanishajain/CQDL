@@ -1,0 +1,94 @@
+---load ./matterhorns.maude .
+load C:/Users/mjain50701/Maudepeople/matterhorns.maude .
+
+fmod GROVER is
+  pr SCALAR .
+  pr DIRAC .
+  pr MATRIX .
+  pr QUBIT .
+  pr Q-SYNTAX .
+  pr Q-SEMANTICS .
+  pr SATISFACTION-RELATION .
+
+    --- sequential version
+    --- defining initial state
+    op inQSt : -> Qubit .
+    eq inQSt = (q[1 2 3]: |0> (x) |0> (x) |0>) .
+    
+    ops init anc oracle00 oracle01 oracle10 oracle11 diff grover00 grover01 grover10 grover11 : -> Prog .
+    eq init = H(1) ; H(2) .
+    eq anc = X(3) ; H(3) .
+    eq oracle00 = X(1) ; X(2) ; CCX(1,2,3) ; X(1) ; X(2) .
+    eq oracle01 = X(1) ; CCX(1,2,3) ; X(1) .
+    eq oracle10 = X(2) ; CCX(1,2,3) ; X(2) .
+    eq oracle11 = CCX(1,2,3) .
+    eq diff = H(1) ; X(1) ; H(2) ; X(2) ; CZ(1,2) ; X(1) ; H(1) ; X(2) ; H(2) .
+    eq grover00 = init ; anc ; oracle00 ; diff .
+    eq grover01 = init ; anc ; oracle01 ; diff .
+    eq grover10 = init ; anc ; oracle10 ; diff .
+    eq grover11 = init ; anc ; oracle11 ; diff .
+
+    --- parallel version
+    ops initP oracle00P diffP grover00P grover01P grover10P grover11P : -> Prog .
+    eq initP = H(1) || H(2) .
+    eq oracle00P = (X(1) || X(2)) ; CCX(1,2,3) ; (X(1) || X(2)) .
+    eq diffP = ((H(1) ; X(1)) || (H(2) ; X(2))) ; CZ(1,2) ; ((X(1) ; H(1)) || (X(2) ; H(2))) .
+    eq grover00P = initP ; anc ; oracle00P ; diffP .
+    eq grover01P = initP ; anc ; oracle01 ; diffP .
+    eq grover10P = initP ; anc ; oracle10 ; diffP .
+    eq grover11P = initP ; anc ; oracle11 ; diffP .
+endfm
+
+---Sequential
+red rmvRep(bigStep(< grover00, inQSt >)) .
+red rmvRep(bigStep(< grover01, inQSt >)) .
+red rmvRep(bigStep(< grover10, inQSt >)) .
+red rmvRep(bigStep(< grover11, inQSt >)) .
+
+red in GROVER :
+inQSt |=
+ ([grover00] (P(1, |0>) /\ P(2, |0>))) /\ 
+ ([grover01] (P(1, |0>) /\ P(2, |1>))) /\
+ ([grover10] (P(1, |1>) /\ P(2, |0>))) /\
+ ([grover11] (P(1, |1>) /\ P(2, |1>))) .    
+
+---Parallel    
+red rmvRep(bigStep(< grover00P, inQSt >)) .
+red rmvRep(bigStep(< grover01P, inQSt >)) .
+red rmvRep(bigStep(< grover10P, inQSt >)) .
+red rmvRep(bigStep(< grover11P, inQSt >)) .
+
+red in GROVER :
+inQSt |=
+ ([grover00P] (P(1, |0>) /\ P(2, |0>))) /\ 
+ ([grover01P] (P(1, |0>) /\ P(2, |1>))) /\
+ ([grover10P] (P(1, |1>) /\ P(2, |0>))) /\
+ ([grover11P] (P(1, |1>) /\ P(2, |1>))) .    
+
+    
+--- red in GROVER : rmvRep(bigStep(< grover00, inQSt >)) .
+
+---red in GROVER : rmvRep(bigStep(< grover01, inQSt >)) .
+
+---red in GROVER : rmvRep(bigStep(< grover10, inQSt >)) .
+
+---red in GROVER : rmvRep(bigStep(< grover11, inQSt >)) .
+
+---red in GROVER : rmvRep(bigStep(< grover11P, inQSt >)) .
+
+---red in GROVER : inQSt |= [grover00] (P(1, |0>) /\ P(2, |0>)) 
+---/\ [grover01] (P(1, |0>) /\ P(2, |1>))
+---/\ [grover10] (P(1, |1>) /\ P(2, |0>)) 
+---/\ [grover11] (P(1, |1>) /\ P(2, |1>)) .
+
+---red in GROVER : inQSt |= [grover00] (P(1, |0>) /\ P(2, |0>)) .
+
+---red in GROVER : inQSt |= [grover01] (P(1, |0>) /\ P(2, |1>)) .
+
+
+---red in GROVER : inQSt |= [grover10] (P(1, |1>) /\ P(2, |0>)) .
+
+---red in GROVER : inQSt |= [grover11] (P(1, |1>) /\ P(2, |1>)) .
+
+--- red in GROVER : inQSt |= [grover00] (P(1, |0>) /\ P(2, |0>)) /\ [grover01] (P(1, |0>) /\ P(2, |1>)) .
+

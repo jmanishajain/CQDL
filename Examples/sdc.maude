@@ -1,0 +1,55 @@
+load C:/Users/mjain50701/Maudepeople/matterhorns.maude .
+
+fmod SUPERDENSECODING is
+  pr SCALAR .
+  pr DIRAC .
+  pr MATRIX .
+  pr QUBIT .
+  pr Q-SYNTAX .
+  pr Q-SEMANTICS .
+  pr SATISFACTION-RELATION . 
+
+    --- initial state
+    op inQSt : -> Qubit .
+    eq inQSt = (q[1 2]: |0> (x) |0>) .
+    
+    --- sequential version
+    ops Charlie Alice Bob sdc Alice00 Alice01 Alice10 Alice11 : -> Prog .
+    eq Charlie = H(1) ; CX(1,2) . 
+    eq Alice00 = skip .
+    eq Alice10 = Z(1) .
+    eq Alice01 = X(1) . 
+    eq Alice11 = X(1) ; Z(1) .  
+    eq Alice = skip + Z(1) + X(1) + X(1) ; Z(1) . 
+    eq Bob = CX(1,2) ; H(1) ; Measure(1, skip, skip) ; Measure(2, skip, skip) .
+    eq sdc = Charlie ; Alice ; Bob .
+
+
+    --- parallel version
+    ops BobP sdcP : -> Prog .
+    eq BobP = CX(1,2) ; H(1) ; (Measure(1, skip, skip) || Measure(2, skip, skip)) .
+    eq sdcP = Charlie ; Alice ; BobP .
+
+endfm
+
+---in load C:/Users/mjain50701/Maudepeople/debug.maude .
+
+red in SUPERDENSECODING :
+inQSt |= 
+  ([ Charlie ; Alice00 ; Bob ] (P(1, |0>) /\ P(2, |0>))) /\
+  ([ Charlie ; Alice01 ; Bob ] (P(1, |0>) /\ P(2, |1>))) /\
+  ([ Charlie ; Alice10 ; Bob ] (P(1, |1>) /\ P(2, |0>))) /\
+  ([ Charlie ; Alice11 ; Bob ] (P(1, |1>) /\ P(2, |1>))) .
+
+red in SUPERDENSECODING :
+inQSt |=
+  ([ Charlie ; Alice00 ; BobP ] (P(1, |0>) /\ P(2, |0>))) /\
+  ([ Charlie ; Alice01 ; BobP ] (P(1, |0>) /\ P(2, |1>))) /\
+  ([ Charlie ; Alice10 ; BobP ] (P(1, |1>) /\ P(2, |0>))) /\
+  ([ Charlie ; Alice11 ; BobP ] (P(1, |1>) /\ P(2, |1>))) .
+
+red in SUPERDENSECODING :
+rmvRep(bigStep(< sdc, inQSt >)) . 
+
+red in SUPERDENSECODING :
+rmvRep(bigStep(< sdcP, inQSt >)) . 
