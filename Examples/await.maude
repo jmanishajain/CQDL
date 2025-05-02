@@ -1,4 +1,6 @@
-load ./matterhorns.maude .
+load ../main.maude .
+load ../lang.maude .
+load ../logic.maude .    
 
 fmod AWAIT is
   pr SCALAR .

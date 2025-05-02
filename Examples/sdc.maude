@@ -1,4 +1,6 @@
-load C:/Users/mjain50701/Maudepeople/matterhorns.maude .
+load ../main.maude .
+load ../lang.maude .
+load ../logic.maude .    
 
 fmod SUPERDENSECODING is
   pr SCALAR .

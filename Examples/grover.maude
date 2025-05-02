@@ -1,6 +1,7 @@
----load ./matterhorns.maude .
-load C:/Users/mjain50701/Maudepeople/matterhorns.maude .
-
+load ../main.maude .
+load ../lang.maude .
+load ../logic.maude .
+    
 fmod GROVER is
   pr SCALAR .
   pr DIRAC .
